@@ -26,3 +26,7 @@ MAX_GAP_HEIGHT = 350  # Maximum gap height (between top and bottom obstacle)
 # Y position of the gap (randomly shifting the gap vertically)
 MIN_GAP_Y = 100   # Minimum vertical position for the top gap
 MAX_GAP_Y = 350  # Maximum vertical position for the top gap
+
+# Score board
+SCOREBOARD_HEIGHT = 400
+SCOREBOARD_WIDTH = 450

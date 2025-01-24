@@ -12,9 +12,8 @@ class Bird:
         # Movement Variables
         self.y_velocity = 0
         self.gravity = s.GRAVITY  # Gravity accelerates the bird downward
-        self.jump_force = -8  # Negative force for an upward jump
-        self.max_fall_speed = 10  # Limit the maximum downward speed
-
+        self.jump_force = s.JUMP_FORCE  # Negative force for an upward jump
+        self.max_fall_speed = s.MAX_FALL_SPEED  # Limit the maximum downward speed
         self.alive = True
         
         self.mask = pg.mask.from_surface(self.image)

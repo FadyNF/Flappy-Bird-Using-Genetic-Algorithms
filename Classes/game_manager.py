@@ -1,9 +1,7 @@
 import pygame as pg
-from Classes.bird import Bird
 from Classes.BirdGA import BirdGA
 from Classes.obstacles import Obstacle
 import Classes.settings as s
-import random
 
 class GameManager:
     def __init__(self):
@@ -107,9 +105,9 @@ class GameManager:
     def render(self):
         # Clear surfaces
         self.main_surface.fill(s.BG_COLOR)
-        self.scoreboard_surface.fill((200, 200, 200))  # Light gray background
+        self.scoreboard_surface.fill(s.BG_COLOR)
         
-        # Render game on main surface
+        # Render game elements first
         for bird in self.birds:
             bird.render(self.main_surface)
         
@@ -122,9 +120,23 @@ class GameManager:
         # Draw the scoreboard to the right part of the screen
         self.main_surface.blit(self.scoreboard_surface, (s.SCREEN_WIDTH, 0))
         
+        # Draw vertical border line
+        pg.draw.line(self.main_surface, (0, 0, 0), 
+                    (s.SCREEN_WIDTH, 0), 
+                    (s.SCREEN_WIDTH, s.SCREEN_HEIGHT), 
+                    width=2)
+        
+        # Draw generation text last so it appears on top
+        gen_text = self.title_font.render(f"Generation: {self.current_generation}", True, (0, 0, 0))
+        gen_text_rect = gen_text.get_rect()
+        gen_text_rect.centerx = s.SCREEN_WIDTH // 2
+        gen_text_rect.top = 10
+        self.main_surface.blit(gen_text, gen_text_rect)
+        
         # Update the display
-        pg.display.update()
-    
+        pg.display.update()   
+        
+         
     def add_to_top_5(self, fitness_score):
         """Add the new fitness score to the top 5 scores"""
         # Add the new score to the list
@@ -140,9 +152,6 @@ class GameManager:
     
     
     def render_scoreboard(self):
-        # Minimalistic background (light color or very subtle gradient)
-        self.scoreboard_surface.fill((240, 240, 240))  # Light gray background
-        
         # Title in simple, clear font with no decoration
         title = self.title_font.render("Top 5 Generation Scores", True, (0, 0, 0))  # Black text for contrast
         title_rect = title.get_rect(centerx=s.SCOREBOARD_WIDTH // 2, top=20)

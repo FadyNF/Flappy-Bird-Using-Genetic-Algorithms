@@ -1,5 +1,5 @@
 import numpy as np
-from Classes.bird import Bird
+from Classes.Bird import Bird
 import random
 
 class BirdGA:

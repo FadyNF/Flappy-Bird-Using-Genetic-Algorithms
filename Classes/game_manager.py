@@ -2,11 +2,11 @@ import pygame as pg
 from Classes.BirdGA import BirdGA
 from Classes.obstacles import Obstacle
 import Classes.settings as s
-from utils import check_collision, randomize_bird_params, bounds_check
 
 class GameManager:
     def __init__(self):
         pg.init()
+        # Define the full screen dimensions and then divide it into game and scoreboard parts
         self.main_surface = pg.display.set_mode((s.SCREEN_WIDTH + s.SCOREBOARD_WIDTH, s.SCREEN_HEIGHT))
         pg.display.set_caption("Flappy Bird AI")
         self.clock = pg.time.Clock()
@@ -68,13 +68,19 @@ class GameManager:
             
             # Check collisions for each bird
             for obstacle in self.obstacles:
-                if check_collision(bird, obstacle):
+                if self.check_collision(bird, obstacle):
                     bird.alive = False
     
     def reset_generation(self):
+        # Calculate best fitness in current generation
         best_fitness = max(bird.get_fitness() for bird in self.bird_ga.population)
+        
+        # Append the current generation number and the best fitness as a tuple
         self.generation_scores.append((self.current_generation, best_fitness))
+        
+        # Add the best fitness to the top_5_scores list
         self.add_to_top_5(best_fitness)
+
         self.current_generation += 1
         
         # Evolve population
@@ -89,6 +95,7 @@ class GameManager:
         self.obstacles.clear()
         self.obstacle_timer = 0
 
+    
     def spawn_obstacle(self):
         x_position = s.SCREEN_WIDTH
         new_obstacle = Obstacle(x_position)
@@ -126,35 +133,64 @@ class GameManager:
         self.main_surface.blit(gen_text, gen_text_rect)
         
         # Update the display
-        pg.display.update()
+        pg.display.update()   
         
+         
     def add_to_top_5(self, fitness_score):
         """Add the new fitness score to the top 5 scores"""
+        # Add the new score to the list
         self.top_5_scores.append(fitness_score)
+        
+        # Sort the list in descending order (highest fitness first)
         self.top_5_scores.sort(reverse=True)
+        
+        # Keep only the top 5 scores
         if len(self.top_5_scores) > 5:
             self.top_5_scores = self.top_5_scores[:5]
+
+    
     
     def render_scoreboard(self):
+        # Title in simple, clear font with no decoration
         title = self.title_font.render("Top 5 Generation Scores", True, (0, 0, 0))  # Black text for contrast
         title_rect = title.get_rect(centerx=s.SCOREBOARD_WIDTH // 2, top=20)
         self.scoreboard_surface.blit(title, title_rect)
         
+        # Sort the generation_scores by best fitness (highest first) and limit to top 5
         sorted_scores = sorted(self.generation_scores, key=lambda x: x[1], reverse=True)[:5]
         
+        # Minimalistic rows with simple border and no shadows
         for i, (gen_num, score) in enumerate(sorted_scores, 1):
+            # Define the color of the rows (light gray and white alternating)
             row_color = (255, 255, 255) if i % 2 == 0 else (230, 230, 230)
+            
+            # Create the row rectangle (simple border-radius for smooth edges)
             row_rect = pg.Rect(20, 80 + i * 50, s.SCOREBOARD_WIDTH - 40, 40)
             pg.draw.rect(self.scoreboard_surface, row_color, row_rect, border_radius=8)
             
-            gen_text = self.score_font.render(f"Gen {gen_num}", True, (0, 0, 0))
-            score_text = self.score_font.render(f"Best Fitness: {score:.2f}", True, (50, 50, 50))
+            # Minimalist text (centered, no effects)
+            gen_text = self.score_font.render(f"Gen {gen_num}", True, (0, 0, 0))  # Black text
+            score_text = self.score_font.render(f"Best Fitness: {score:.2f}", True, (50, 50, 50))  # Dark gray text
             
+            # Position text inside the row (left-aligned for generation, right-aligned for score)
             gen_text_rect = gen_text.get_rect(left=row_rect.left + 20, centery=row_rect.centery)
             score_text_rect = score_text.get_rect(right=row_rect.right - 20, centery=row_rect.centery)
             
+            # Blit the text
             self.scoreboard_surface.blit(gen_text, gen_text_rect)
             self.scoreboard_surface.blit(score_text, score_text_rect)
+
+
+
+    
+    def check_collision(self, bird, obstacle):
+        """Collision detection using rectangles"""
+        bird_rect = pg.Rect(bird.x, bird.y, bird.width, bird.height)
+        top_obstacle_rect = pg.Rect(obstacle.x, 0, obstacle.width, obstacle.y_top)
+        bottom_obstacle_rect = pg.Rect(obstacle.x, obstacle.y_bottom, obstacle.width, s.SCREEN_HEIGHT - obstacle.y_bottom)
+        
+        return (bird_rect.colliderect(top_obstacle_rect) or 
+                bird_rect.colliderect(bottom_obstacle_rect))
     
     def run(self):
         while self.running:
